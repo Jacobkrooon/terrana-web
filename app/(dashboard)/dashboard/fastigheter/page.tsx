@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import NewFastighetButton from './NewFastighetButton'
+import FastighetActions from './FastighetActions'
 
 export default async function FastigheterPage() {
   const supabase = await createClient()
@@ -6,15 +8,18 @@ export default async function FastigheterPage() {
 
   const { data: fastigheter } = await supabase
     .from('fastigheter')
-    .select('id, beteckning, trakt, kommun_namn, lan_namn, areal_hektar, source, created_at')
+    .select('id, beteckning, trakt, block, enhet, kommun_namn, lan_namn, areal_m2, notes, source, created_at')
     .eq('owner_id', user!.id)
     .order('beteckning')
 
   return (
     <div className="p-8 max-w-5xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-[#1B4332]">Fastigheter</h1>
-        <span className="text-sm text-[#8FAF97]">{fastigheter?.length ?? 0} registrerade</span>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1B4332]">Fastigheter</h1>
+          <span className="text-sm text-[#8FAF97]">{fastigheter?.length ?? 0} registrerade</span>
+        </div>
+        <NewFastighetButton />
       </div>
 
       <div className="bg-white rounded-2xl border border-[#C8DDD0] overflow-hidden">
@@ -27,6 +32,7 @@ export default async function FastigheterPage() {
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Län</th>
                 <th className="text-right px-6 py-3 text-[#8FAF97] font-semibold">Areal</th>
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Källa</th>
+                <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -36,7 +42,7 @@ export default async function FastigheterPage() {
                   <td className="px-6 py-4 text-[#5A7263]">{f.kommun_namn ?? '–'}</td>
                   <td className="px-6 py-4 text-[#5A7263]">{f.lan_namn ?? '–'}</td>
                   <td className="px-6 py-4 text-right text-[#5A7263]">
-                    {f.areal_hektar != null ? `${Number(f.areal_hektar).toFixed(1)} ha` : '–'}
+                    {f.areal_m2 != null ? `${(f.areal_m2 / 10000).toFixed(1)} ha` : '–'}
                   </td>
                   <td className="px-6 py-4">
                     {f.source === 'lantmateriet' ? (
@@ -44,6 +50,9 @@ export default async function FastigheterPage() {
                     ) : (
                       <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Manuell</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <FastighetActions fastighet={f} />
                   </td>
                 </tr>
               ))}
@@ -53,7 +62,7 @@ export default async function FastigheterPage() {
           <div className="px-6 py-16 text-center">
             <span className="text-4xl">🏡</span>
             <p className="mt-4 font-semibold text-[#1A2E1E]">Inga fastigheter registrerade</p>
-            <p className="text-sm text-[#8FAF97] mt-1">Lägg till fastigheter i iOS-appen</p>
+            <p className="text-sm text-[#8FAF97] mt-1">Lägg till din första fastighet med knappen ovan</p>
           </div>
         )}
       </div>
