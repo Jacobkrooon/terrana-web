@@ -14,6 +14,7 @@ export async function createOrder(formData: FormData) {
     title: formData.get('title') as string,
     description: formData.get('description') as string || null,
     status: 'skickad',
+    estimated_cost: formData.get('estimated_cost') ? Number(formData.get('estimated_cost')) : null,
   })
   revalidatePath('/dashboard/orders')
 }

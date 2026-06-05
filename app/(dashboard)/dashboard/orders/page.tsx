@@ -18,7 +18,7 @@ export default async function OrdersPage() {
   const [{ data: orders }, { data: contacts }, { data: areas }] = await Promise.all([
     supabase
       .from('work_orders')
-      .select(`id, title, description, status, created_at, sender_id,
+      .select(`id, title, description, status, created_at, sender_id, estimated_cost, actual_cost,
         area:areas(name),
         recipient:profiles!work_orders_recipient_id_fkey(full_name)`)
       .or(`sender_id.eq.${user!.id},recipient_id.eq.${user!.id}`)
@@ -62,6 +62,7 @@ export default async function OrdersPage() {
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Mottagare</th>
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Status</th>
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Datum</th>
+                <th className="text-right px-6 py-3 text-[#8FAF97] font-semibold">Kostnad</th>
                 <th className="px-6 py-3" />
               </tr>
             </thead>
@@ -83,6 +84,13 @@ export default async function OrdersPage() {
                   </td>
                   <td className="px-6 py-4 text-[#8FAF97]">
                     {new Date(order.created_at).toLocaleDateString('sv-SE')}
+                  </td>
+                  <td className="px-6 py-4 text-right text-[#5A7263]">
+                    {(order as any).actual_cost != null
+                      ? `${Number((order as any).actual_cost).toLocaleString('sv-SE')} kr`
+                      : (order as any).estimated_cost != null
+                      ? <span className="text-[#8FAF97]">~{Number((order as any).estimated_cost).toLocaleString('sv-SE')} kr</span>
+                      : '–'}
                   </td>
                   <td className="px-6 py-4">
                     <OrderActions

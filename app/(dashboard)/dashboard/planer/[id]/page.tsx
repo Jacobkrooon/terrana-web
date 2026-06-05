@@ -47,7 +47,13 @@ export default async function PlanDetailPage({ params }: { params: { id: string 
               {stands?.length ?? 0} avdelningar
             </p>
           </div>
-          <NewStandButton planId={params.id} />
+          <div className="flex gap-2">
+            <a href={`/dashboard/planer/${params.id}/export`} target="_blank"
+              className="border border-[#C8DDD0] text-[#5A7263] px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#F8FBF9]">
+              Exportera PDF
+            </a>
+            <NewStandButton planId={params.id} />
+          </div>
         </div>
       </div>
 

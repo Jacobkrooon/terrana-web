@@ -58,6 +58,11 @@ export default function NewOrderModal({ rojare, areas, onClose }: Props) {
             </select>
           </div>
           <div>
+            <label className="block text-xs font-semibold text-[#5A7263] mb-1">Beräknad kostnad (kr)</label>
+            <input name="estimated_cost" type="number" step="100" placeholder="t.ex. 5000"
+              className="w-full border border-[#C8DDD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]" />
+          </div>
+          <div>
             <label className="block text-xs font-semibold text-[#5A7263] mb-1">Beskrivning</label>
             <textarea name="description" rows={3} placeholder="Instruktioner till röjaren…"
               className="w-full border border-[#C8DDD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] resize-none" />
