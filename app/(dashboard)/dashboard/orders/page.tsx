@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import NewOrderButton from './NewOrderButton'
+import OrderActions from './OrderActions'
 
 const STATUS_LABEL: Record<string, string> = {
-  skickad: 'Skickad',
-  pagaende: 'Pågående',
-  klar: 'Klar',
+  skickad: 'Skickad', pagaende: 'Pågående', klar: 'Klar',
 }
 const STATUS_COLOR: Record<string, string> = {
   skickad: 'bg-blue-100 text-blue-700',
@@ -15,16 +15,29 @@ export default async function OrdersPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: orders } = await supabase
-    .from('work_orders')
-    .select(`
-      id, title, description, status, created_at,
-      area:areas(name),
-      sender:profiles!work_orders_sender_id_fkey(full_name),
-      recipient:profiles!work_orders_recipient_id_fkey(full_name)
-    `)
-    .or(`sender_id.eq.${user!.id},recipient_id.eq.${user!.id}`)
-    .order('created_at', { ascending: false })
+  const [{ data: orders }, { data: contacts }, { data: areas }] = await Promise.all([
+    supabase
+      .from('work_orders')
+      .select(`id, title, description, status, created_at, sender_id,
+        area:areas(name),
+        recipient:profiles!work_orders_recipient_id_fkey(full_name)`)
+      .or(`sender_id.eq.${user!.id},recipient_id.eq.${user!.id}`)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('contacts')
+      .select('contact_id, contact:profiles!contacts_contact_id_fkey(id, full_name)')
+      .eq('owner_id', user!.id),
+    supabase
+      .from('areas')
+      .select('id, name')
+      .eq('owner_id', user!.id)
+      .order('name'),
+  ])
+
+  const rojare = (contacts ?? [])
+    .map((c: any) => c.contact)
+    .filter(Boolean)
+    .map((p: any) => ({ id: p.id, full_name: p.full_name }))
 
   const active = orders?.filter(o => o.status !== 'klar').length ?? 0
   const done = orders?.filter(o => o.status === 'klar').length ?? 0
@@ -32,11 +45,11 @@ export default async function OrdersPage() {
   return (
     <div className="p-8 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#1B4332]">Arbetsorder</h1>
-        <div className="flex gap-4 text-sm text-[#8FAF97]">
-          <span>{active} aktiva</span>
-          <span>{done} klara</span>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1B4332]">Arbetsorder</h1>
+          <span className="text-sm text-[#8FAF97]">{active} aktiva · {done} klara</span>
         </div>
+        <NewOrderButton rojare={rojare} areas={areas ?? []} />
       </div>
 
       <div className="bg-white rounded-2xl border border-[#C8DDD0] overflow-hidden">
@@ -49,6 +62,7 @@ export default async function OrdersPage() {
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Mottagare</th>
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Status</th>
                 <th className="text-left px-6 py-3 text-[#8FAF97] font-semibold">Datum</th>
+                <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -70,15 +84,23 @@ export default async function OrdersPage() {
                   <td className="px-6 py-4 text-[#8FAF97]">
                     {new Date(order.created_at).toLocaleDateString('sv-SE')}
                   </td>
+                  <td className="px-6 py-4">
+                    <OrderActions
+                      orderId={order.id}
+                      status={order.status}
+                      isSender={order.sender_id === user!.id}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
           <div className="px-6 py-16 text-center">
-            <span className="text-4xl">📋</span>
-            <p className="mt-4 font-semibold text-[#1A2E1E]">Inga arbetsorder</p>
-            <p className="text-sm text-[#8FAF97] mt-1">Skapa arbetsorder i iOS-appen</p>
+            <p className="font-semibold text-[#1A2E1E]">Inga arbetsorder</p>
+            <p className="text-sm text-[#8FAF97] mt-1">
+              {rojare.length > 0 ? 'Klicka "Ny arbetsorder" för att komma igång' : 'Lägg till röjare i iOS-appen för att skapa arbetsorder'}
+            </p>
           </div>
         )}
       </div>
