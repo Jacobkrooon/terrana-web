@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 
 const SOURCE_LABEL: Record<string, string> = {
   manual: 'Manuell',
@@ -33,7 +34,7 @@ export default async function PlanerPage() {
             const area = plan.area as any
             const standCount = (plan.stands as any)?.[0]?.count ?? 0
             return (
-              <div key={plan.id} className="bg-white rounded-2xl border border-[#C8DDD0] p-6">
+              <Link key={plan.id} href={`/dashboard/planer/${plan.id}`} className="block bg-white rounded-2xl border border-[#C8DDD0] p-6 hover:border-[#2D6A4F] transition-colors">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="font-bold text-[#1A2E1E] text-lg">{plan.name}</h2>
@@ -67,7 +68,7 @@ export default async function PlanerPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             )
           })}
         </div>
